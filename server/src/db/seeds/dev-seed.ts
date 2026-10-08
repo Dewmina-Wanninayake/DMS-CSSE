@@ -165,3 +165,152 @@ export function seedDevData(db: Db, password: string, now: Date = new Date()): b
   })();
   return true;
 }
+
+/* ------------------------------------------------------------------------------------------ */
+
+const EXTRA_MARKER = 'Extra:';
+const HAZARDS = [HazardType.Flood, HazardType.Landslide, HazardType.BlockedRoad, HazardType.Other];
+
+/** Districts most exposed to each hazard get more reports, so the risk map has a clear pattern. */
+const HOT_SPOTS: Record<string, string[]> = {
+  [HazardType.Flood]: ['KEG', 'RAT', 'GPH', 'KLT', 'CMB', 'GAL', 'MTR', 'BTC', 'AMP'],
+  [HazardType.Landslide]: ['NWE', 'BDL', 'KEG', 'RAT', 'KDY', 'MTL'],
+  [HazardType.BlockedRoad]: ['KDY', 'NWE', 'KEG', 'RAT', 'GAL'],
+  [HazardType.Other]: ['CMB', 'GPH', 'JAF'],
+};
+
+/** Small deterministic generator: the same data every run, no external dependency. */
+function lcg(seed: number): () => number {
+  let state = seed;
+  return () => {
+    state = (state * 1_664_525 + 1_013_904_223) % 4_294_967_296;
+    return state / 4_294_967_296;
+  };
+}
+
+/**
+ * Adds a larger, varied data set on top of the base seed: twelve months of reports in every
+ * status (including linked duplicates), five years of archival incidents and monthly hydromet
+ * readings for every district. Idempotent: it does nothing when its marker rows already exist.
+ * Returns the number of rows added per table, or null when it was already applied.
+ */
+export function seedExtraData(
+  db: Db,
+  now: Date = new Date(),
+): { reports: number; incidents: number; observations: number } | null {
+  const done = db
+    .prepare('SELECT COUNT(*) AS n FROM hazard_reports WHERE description LIKE ?')
+    .get(`${EXTRA_MARKER}%`) as { n: number };
+  if (done.n > 0) return null;
+
+  const reporter = db.prepare('SELECT id FROM users WHERE email = ?').get('citizen@dms.lk') as
+    { id: number } | undefined;
+  if (!reporter) throw new Error('Run the base seed first (no citizen user found).');
+
+  const districts = db
+    .prepare('SELECT id, code, name, latitude, longitude FROM districts ORDER BY id')
+    .all() as { id: number; code: string; name: string; latitude: number; longitude: number }[];
+  const byCode = new Map(districts.map((d) => [d.code, d]));
+  const random = lcg(2026);
+
+  const insertReport = db.prepare(
+    `INSERT INTO hazard_reports
+       (reporter_id, hazard_type, description, severity, status, latitude, longitude, district_id,
+        reported_at, verified_at, duplicate_of)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
+  const insertIncident = db.prepare(
+    'INSERT INTO historical_incidents (district_id, hazard_type, occurred_at, summary) VALUES (?, ?, ?, ?)',
+  );
+  const insertObservation = db.prepare(
+    `INSERT INTO hydromet_observations (district_id, station_name, observed_at, rainfall_mm, river_level_m)
+     VALUES (?, ?, ?, ?, ?)`,
+  );
+  const severities = ['Low', 'Medium', 'High', 'Critical'];
+  const counts = { reports: 0, incidents: 0, observations: 0 };
+
+  db.transaction(() => {
+    // Twelve months of reports, denser in recent weeks so the trend is "Rising".
+    for (const hazard of HAZARDS) {
+      const spots = (HOT_SPOTS[hazard] ?? []).map((code) => byCode.get(code)).filter(Boolean);
+      for (const [index, district] of spots.entries()) {
+        if (!district) continue;
+        const total = 4 + Math.floor(random() * 9) - index; // first spots are the hottest
+        let firstId: number | null = null;
+        for (let i = 0; i < Math.max(total, 2); i += 1) {
+          const recent = random() < 0.45;
+          const daysAgo = recent ? 1 + Math.floor(random() * 30) : 31 + Math.floor(random() * 335);
+          const reportedAt = new Date(now.getTime() - daysAgo * DAY_MS);
+          const roll = random();
+          const status =
+            roll < 0.72
+              ? 'Verified'
+              : roll < 0.82
+                ? 'Pending'
+                : roll < 0.92
+                  ? 'Rejected'
+                  : 'NeedsInformation';
+          const duplicate = status === 'Verified' && firstId !== null && random() < 0.12;
+          const jitter = () => (random() - 0.5) * 0.08;
+          const result = insertReport.run(
+            reporter.id,
+            hazard,
+            `${EXTRA_MARKER} ${hazard.toLowerCase()} report near ${district.name} (${i + 1})`,
+            status === 'Verified' ? severities[Math.floor(random() * severities.length)] : null,
+            status,
+            district.latitude + jitter(),
+            district.longitude + jitter(),
+            district.id,
+            reportedAt.toISOString(),
+            status === 'Verified'
+              ? new Date(reportedAt.getTime() + 2 * 3_600_000).toISOString()
+              : null,
+            duplicate ? firstId : null,
+          );
+          counts.reports += 1;
+          if (status === 'Verified' && firstId === null) firstId = Number(result.lastInsertRowid);
+        }
+      }
+    }
+
+    // Five years of archival incidents for every district.
+    for (const district of districts) {
+      for (const hazard of [HazardType.Flood, HazardType.Landslide]) {
+        const base = (HOT_SPOTS[hazard] ?? []).includes(district.code) ? 3 : 1;
+        for (let year = 1; year <= 5; year += 1) {
+          const perYear = Math.floor(random() * (base + 1)) + (base > 1 ? 1 : 0);
+          for (let i = 0; i < perYear; i += 1) {
+            const date = new Date(now);
+            date.setUTCFullYear(date.getUTCFullYear() - year);
+            date.setUTCMonth(Math.floor(random() * 12), 1 + Math.floor(random() * 27));
+            insertIncident.run(
+              district.id,
+              hazard,
+              date.toISOString(),
+              `Archived ${hazard.toLowerCase()} incident in ${district.name}`,
+            );
+            counts.incidents += 1;
+          }
+        }
+      }
+    }
+
+    // Monthly gauge readings for every district, wetter in the south-west.
+    const wet = new Set(['KEG', 'RAT', 'GPH', 'KLT', 'CMB', 'GAL', 'MTR', 'NWE']);
+    for (const district of districts) {
+      for (let month = 0; month < 12; month += 1) {
+        const observedAt = new Date(now.getTime() - month * 30 * DAY_MS);
+        const rain = (wet.has(district.code) ? 140 : 70) + Math.floor(random() * 120);
+        insertObservation.run(
+          district.id,
+          `${district.name} gauge`,
+          observedAt.toISOString(),
+          rain,
+          Math.round((1 + rain / 80 + random()) * 10) / 10,
+        );
+        counts.observations += 1;
+      }
+    }
+  })();
+  return counts;
+}
