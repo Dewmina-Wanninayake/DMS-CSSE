@@ -1,0 +1,28 @@
+-- Reference data: Sri Lanka's 25 districts. Population: Census 2012 (approx.); area: total km2.
+-- Latitude/longitude are approximate district centroids used for map markers.
+INSERT INTO districts (code, name, province, latitude, longitude, population, area_km2) VALUES
+ ('CMB','Colombo','Western',6.93,79.86,2324349,699),
+ ('GPH','Gampaha','Western',7.09,80.00,2304833,1387),
+ ('KLT','Kalutara','Western',6.58,80.10,1221948,1598),
+ ('KDY','Kandy','Central',7.29,80.63,1375382,1940),
+ ('MTL','Matale','Central',7.47,80.62,484531,1952),
+ ('NWE','Nuwara Eliya','Central',6.97,80.77,706588,1741),
+ ('GAL','Galle','Southern',6.05,80.22,1058975,1652),
+ ('MTR','Matara','Southern',5.95,80.55,814048,1270),
+ ('HBT','Hambantota','Southern',6.12,81.12,599903,2609),
+ ('JAF','Jaffna','Northern',9.66,80.01,583882,1025),
+ ('KIL','Kilinochchi','Northern',9.39,80.40,113510,1279),
+ ('MNR','Mannar','Northern',8.98,79.91,99570,1996),
+ ('VAV','Vavuniya','Northern',8.75,80.50,172115,1967),
+ ('MUL','Mullaitivu','Northern',9.27,80.81,92238,2617),
+ ('BTC','Batticaloa','Eastern',7.71,81.69,526567,2854),
+ ('AMP','Ampara','Eastern',7.30,81.67,649402,4415),
+ ('TRC','Trincomalee','Eastern',8.57,81.23,379541,2727),
+ ('KUR','Kurunegala','North Western',7.49,80.37,1618465,4816),
+ ('PUT','Puttalam','North Western',8.03,79.83,762396,3072),
+ ('ANU','Anuradhapura','North Central',8.31,80.40,860575,7179),
+ ('POL','Polonnaruwa','North Central',7.94,81.00,403335,3293),
+ ('BDL','Badulla','Uva',6.99,81.06,815405,2861),
+ ('MON','Monaragala','Uva',6.87,81.35,451058,5639),
+ ('RAT','Ratnapura','Sabaragamuwa',6.68,80.40,1082299,3275),
+ ('KEG','Kegalle','Sabaragamuwa',7.25,80.35,840648,1693);
