@@ -9,7 +9,7 @@ import { dayInZone } from './time';
 import { SqliteHydrometProvider } from './hydromet/hydromet-provider';
 import type { HydrometProvider } from './hydromet/hydromet-provider';
 import { consoleLogger, type Logger } from './logger';
-import { InAppNotificationGateway } from './notifications/in-app.gateway';
+import { ChannelRouterGateway } from './notifications/channels';
 import { NotificationRepository } from './notifications/notification.repository';
 import { NotificationService } from './notifications/notification.service';
 import type { NotificationGateway } from './notifications/notification.types';
@@ -43,7 +43,7 @@ export function createContext(
     districts: new DistrictRepository(db),
     notifications: new NotificationService(
       new NotificationRepository(db),
-      overrides.gateway ?? new InAppNotificationGateway(logger),
+      overrides.gateway ?? new ChannelRouterGateway(logger),
       users,
       config.NOTIFICATION_MAX_RETRIES,
       logger,

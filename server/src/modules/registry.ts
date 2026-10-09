@@ -1,6 +1,7 @@
 import type { Router } from 'express';
 import type { AppContext } from '../core/context';
 import { createPolicyAnalyticsRouter } from './policy-analytics/routes';
+import { createReportVerificationRouter } from './report-verification/routes';
 
 export interface ModuleDefinition {
   /** Kebab-case module name, equal to its folder name. */
@@ -14,4 +15,5 @@ export interface ModuleDefinition {
  */
 export const modules: ModuleDefinition[] = [
   { name: 'policy-analytics', createRouter: createPolicyAnalyticsRouter }, // UC-DA-001 (Member 2)
+  { name: 'report-verification', createRouter: createReportVerificationRouter }, // UC-DIST-02 (Member 1)
 ];
