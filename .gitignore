@@ -8,3 +8,6 @@ graphify-out/
 .vite/
 plan.md
 docs/screenshots/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
