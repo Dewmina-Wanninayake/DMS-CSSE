@@ -7,7 +7,7 @@ import { Card } from '../../../shared/ui/Card';
 import { DistrictMap } from '../../../shared/ui/DistrictMap';
 import { Alert } from '../../../shared/ui/feedback';
 import { RISK_COLORS } from '../../../shared/ui/risk-colors';
-import { RISK_LABEL, RISK_ORDER } from '../constants';
+import { RISK_LABEL, RISK_ORDER } from '../lib/constants';
 import { RiskBadge, RiskLegend } from './badges';
 
 const DIRECTION_TEXT = { Rising: 'Rising', Falling: 'Falling', Stable: 'Stable' } as const;

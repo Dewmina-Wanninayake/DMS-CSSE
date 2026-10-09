@@ -13,6 +13,7 @@ export interface EvidenceRule {
   assess(input: EvidenceInput): EvidenceAssessment;
 }
 
+/** Verified needs GPS and a photo, or one nearby corroborating report. A manual pin without a photo or a neighbour is not enough. */
 export class MinimumEvidenceRule implements EvidenceRule {
   assess(input: EvidenceInput): EvidenceAssessment {
     const hasGps = input.locationSource === 'Gps';
@@ -29,7 +30,8 @@ export class MinimumEvidenceRule implements EvidenceRule {
       );
     }
     if (sufficient) reasons.length = 0;
-    if (sufficient && primary) reasons.push('GPS location and photo meet the minimum evidence rule.');
+    if (sufficient && primary)
+      reasons.push('GPS location and photo meet the minimum evidence rule.');
     if (sufficient && !primary) reasons.push('A nearby report corroborates this one.');
     return {
       sufficient,

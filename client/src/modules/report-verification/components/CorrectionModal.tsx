@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CorrectionAction, WarningLevel, type CorrectionRequest } from '@dms/shared';
 import { Button } from '../../../shared/ui/Button';
-import { Select, Textarea } from '../../../shared/ui/fields';
+import { Select, TextArea } from '../../../shared/ui/fields';
 
 interface Props {
   warningId: number;
@@ -41,16 +41,16 @@ export function CorrectionModal({ warningId, currentLevel, isOpen, onClose, onSu
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div className="dialog">
-        <h2 id="modal-title" style={{ margin: '0 0 var(--space-4) 0', fontSize: 'var(--text-title)', fontWeight: 600 }}>
-          Correct or Withdraw Warning #{warningId}
+        <h2 id="modal-title" className="text-title strong mb-4 flush-top">
+          Correct or withdraw warning #{warningId}
         </h2>
 
-        {error && <div className="alert alert--danger" style={{ marginBottom: 'var(--space-4)' }}>{error}</div>}
+        {error && <div className="alert alert--danger mb-4">{error}</div>}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+        <form onSubmit={handleSubmit} className="stack">
           <fieldset className="fieldset">
-            <legend style={{ marginBottom: 'var(--space-2)' }}>Action Type</legend>
-            <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
+            <legend className="legend-gap">Action type</legend>
+            <div className="row row--loose">
               <label className="choice">
                 <input
                   type="radio"
@@ -59,7 +59,7 @@ export function CorrectionModal({ warningId, currentLevel, isOpen, onClose, onSu
                   checked={action === CorrectionAction.Correct}
                   onChange={() => setAction(CorrectionAction.Correct)}
                 />
-                <span>Correct / Adjust Level (DIST-02 #8)</span>
+                <span>Correct or lower the level</span>
               </label>
               <label className="choice">
                 <input
@@ -69,7 +69,7 @@ export function CorrectionModal({ warningId, currentLevel, isOpen, onClose, onSu
                   checked={action === CorrectionAction.Withdraw}
                   onChange={() => setAction(CorrectionAction.Withdraw)}
                 />
-                <span style={{ color: 'var(--color-danger)', fontWeight: 600 }}>Withdraw Warning</span>
+                <span className="text-danger strong">Withdraw warning</span>
               </label>
             </div>
           </fieldset>
@@ -77,20 +77,19 @@ export function CorrectionModal({ warningId, currentLevel, isOpen, onClose, onSu
           {action === CorrectionAction.Correct && (
             <>
               <Select
-                label="Updated Warning Level (supports downgrading to AllClear)"
+                label="New warning level (can be lowered to AllClear)"
                 value={level}
                 onChange={(e) => setLevel(e.target.value as WarningLevel)}
-                options={[
-                  { value: WarningLevel.Advisory, label: 'Advisory' },
-                  { value: WarningLevel.Watch, label: 'Watch' },
-                  { value: WarningLevel.Warning, label: 'Warning' },
-                  { value: WarningLevel.Emergency, label: 'Emergency' },
-                  { value: WarningLevel.AllClear, label: 'AllClear (Downgrade/Clear)' },
-                ]}
-              />
+              >
+                <option value={WarningLevel.Advisory}>Advisory</option>
+                <option value={WarningLevel.Watch}>Watch</option>
+                <option value={WarningLevel.Warning}>Warning</option>
+                <option value={WarningLevel.Emergency}>Emergency</option>
+                <option value={WarningLevel.AllClear}>AllClear (lower or clear)</option>
+              </Select>
 
-              <Textarea
-                label="Correction Reason / Update Notes"
+              <TextArea
+                label="Reason for the correction"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Explain reason for correcting warning level or area..."
@@ -100,8 +99,9 @@ export function CorrectionModal({ warningId, currentLevel, isOpen, onClose, onSu
           )}
 
           {action === CorrectionAction.Withdraw && (
-            <div className="alert alert--danger" style={{ fontSize: 'var(--text-caption)' }}>
-              Withdrawing this warning will notify all relevant DMC emergency teams that the alert has been cancelled.
+            <div className="alert alert--danger caption">
+              Withdrawing this warning will notify all relevant DMC emergency teams that the alert
+              has been cancelled.
             </div>
           )}
 
@@ -109,8 +109,12 @@ export function CorrectionModal({ warningId, currentLevel, isOpen, onClose, onSu
             <Button type="button" variant="secondary" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" variant={action === CorrectionAction.Withdraw ? 'danger' : 'primary'} loading={isSubmitting}>
-              {action === CorrectionAction.Withdraw ? 'Withdraw Warning' : 'Apply Correction'}
+            <Button
+              type="submit"
+              variant={action === CorrectionAction.Withdraw ? 'danger' : 'primary'}
+              loading={isSubmitting}
+            >
+              {action === CorrectionAction.Withdraw ? 'Withdraw warning' : 'Apply correction'}
             </Button>
           </div>
         </form>

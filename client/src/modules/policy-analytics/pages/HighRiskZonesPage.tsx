@@ -11,7 +11,7 @@ import { Checkbox, Select } from '../../../shared/ui/fields';
 import { PageHeader } from '../../../shared/ui/PageHeader';
 import { RISK_COLORS } from '../../../shared/ui/risk-colors';
 import { policyAnalyticsApi } from '../api/policy-analytics.api';
-import { RISK_LABEL, RISK_ZONE } from '../constants';
+import { RISK_LABEL, RISK_ZONE } from '../lib/constants';
 
 const LEVELS: RiskLevel[] = [RiskLevel.High, RiskLevel.Medium, RiskLevel.Low];
 

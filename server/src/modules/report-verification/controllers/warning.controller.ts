@@ -12,6 +12,7 @@ import type { WarningService } from '../services/warning.service';
 
 const idOf = (req: Request): number => (req.validated.params as { id: number }).id;
 
+/** Thin HTTP layer for warnings. Who may do what is decided by the route guards and by `WarningService`. */
 export class WarningController {
   constructor(
     private readonly warnings: WarningService,
@@ -23,17 +24,26 @@ export class WarningController {
   };
 
   create = (req: Request, res: Response): void => {
-    const warning = this.warnings.create(currentUser(req), req.validated.body as CreateWarningRequest);
+    const warning = this.warnings.create(
+      currentUser(req),
+      req.validated.body as CreateWarningRequest,
+    );
     res.location(`${req.baseUrl}/warnings/${warning.id}/delivery`);
     sendOk(res, warning, 201);
   };
 
   approve = (req: Request, res: Response): void => {
-    sendOk(res, this.warnings.approve(currentUser(req), idOf(req), req.validated.body as ApprovalRequest));
+    sendOk(
+      res,
+      this.warnings.approve(currentUser(req), idOf(req), req.validated.body as ApprovalRequest),
+    );
   };
 
   correct = (req: Request, res: Response): void => {
-    sendOk(res, this.warnings.correct(idOf(req), req.validated.body as CorrectionRequest));
+    sendOk(
+      res,
+      this.warnings.correct(currentUser(req), idOf(req), req.validated.body as CorrectionRequest),
+    );
   };
 
   delivery = (req: Request, res: Response): void => {

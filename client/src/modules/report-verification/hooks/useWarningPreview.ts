@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { WarningPreview, WarningPreviewRequest } from '@dms/shared';
-import { reportVerificationApi } from '../api/reportVerificationApi';
+import { reportVerificationApi } from '../api/report-verification.api';
 
+/** Audience size and approval rule for the current level, areas and channels, shown before the officer confirms (Interaction #2). */
 export function useWarningPreview() {
   const [preview, setPreview] = useState<WarningPreview | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPreview = async (input: WarningPreviewRequest) => {
+  const fetchPreview = useCallback(async (input: WarningPreviewRequest) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -21,7 +22,7 @@ export function useWarningPreview() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   return { preview, isLoading, error, fetchPreview };
 }

@@ -29,6 +29,7 @@ export function isWithinSriLanka(point: GeoPoint): boolean {
   );
 }
 
+/** A match plus its distance; used both to find the nearest district and to find duplicate reports. */
 export interface NearestMatch<T> {
   district: T;
   distanceKm: number;

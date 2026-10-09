@@ -19,7 +19,7 @@ import { Select } from '../../../shared/ui/fields';
 import { PageHeader } from '../../../shared/ui/PageHeader';
 import { policyAnalyticsApi } from '../api/policy-analytics.api';
 import { PolicyStatusBadge } from '../components/badges';
-import { POLICY_STATUS_LABEL } from '../constants';
+import { POLICY_STATUS_LABEL } from '../lib/constants';
 import { usePendingDrafts } from '../hooks/usePendingDrafts';
 
 const PAGE_SIZE = 10;
@@ -103,7 +103,7 @@ export function PolicyListPage() {
           </Alert>
         )}
 
-        <div style={{ maxWidth: '16rem' }}>
+        <div className="max-w-16">
           <Select label="Status" value={status ?? ''} onChange={(e) => setStatus(e.target.value)}>
             <option value="">All statuses</option>
             {STATUSES.map((s: PolicyStatusType) => (
@@ -165,7 +165,7 @@ export function PolicyListPage() {
                 </tbody>
               </table>
             </div>
-            <div className="row" style={{ justifyContent: 'space-between' }}>
+            <div className="row row--between">
               <span className="muted">
                 Page {page} of {totalPages} · {list.data.meta.total} policies
               </span>

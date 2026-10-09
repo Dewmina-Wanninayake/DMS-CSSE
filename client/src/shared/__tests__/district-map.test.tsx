@@ -5,7 +5,12 @@ import { DistrictMap, SRI_LANKA_CENTER } from '../ui/DistrictMap';
 
 // Leaflet needs a real browser layout; here we only verify what the map is asked to draw.
 vi.mock('leaflet/dist/leaflet.css', () => ({}));
+let clickHandler: ((event: { latlng: { lat: number; lng: number } }) => void) | undefined;
 vi.mock('react-leaflet', () => ({
+  useMapEvents: (handlers: { click: typeof clickHandler }) => {
+    clickHandler = handlers.click;
+    return null;
+  },
   MapContainer: ({
     children,
     center,
@@ -72,5 +77,16 @@ describe('DistrictMap', () => {
     expect(screen.getByTestId('marker')).toHaveTextContent('Kegalle: 8 verified');
     expect(screen.getByTestId('circle')).toHaveAttribute('data-radius', '4500'); // km → metres
     expect(screen.getByTestId('circle')).toHaveTextContent('Ratnapura footprint');
+  });
+
+  it('should report the clicked position only when a pick handler is given', () => {
+    const onPick = vi.fn();
+    const { rerender } = render(<DistrictMap label="Pin" markers={[]} onPick={onPick} />);
+    clickHandler?.({ latlng: { lat: 7.1, lng: 80.2 } });
+    expect(onPick).toHaveBeenCalledWith(7.1, 80.2);
+
+    clickHandler = undefined;
+    rerender(<DistrictMap label="Pin" markers={[]} />);
+    expect(clickHandler).toBeUndefined();
   });
 });

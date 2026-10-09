@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { WarningDelivery } from '@dms/shared';
-import { reportVerificationApi } from '../api/reportVerificationApi';
+import { reportVerificationApi } from '../api/report-verification.api';
 
+/** Per-channel delivery log of a warning. Failed sends are retried by the server, so this only needs to re-read the log. */
 export function useWarningDelivery(warningId: number) {
   const [delivery, setDelivery] = useState<WarningDelivery | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDelivery = async () => {
+  const fetchDelivery = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -18,11 +19,11 @@ export function useWarningDelivery(warningId: number) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [warningId]);
 
   useEffect(() => {
     if (warningId) void fetchDelivery();
-  }, [warningId]);
+  }, [warningId, fetchDelivery]);
 
   return { delivery, isLoading, error, refresh: fetchDelivery };
 }

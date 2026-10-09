@@ -14,9 +14,23 @@ import { WarningRepository } from './repositories/warning.repository';
 import * as schema from './schemas/report-verification.schemas';
 import { ReportVerificationService } from './services/report-verification.service';
 import { WarningAssembler } from './services/warning.assembler';
+import { WarningNotifier } from './services/warning-notifier';
 import { WarningService } from './services/warning.service';
 
+/** Exposes the service to `server.ts` so the approval-escalation timer (10b) can run without an HTTP request. */
+export function createWarningService(ctx: AppContext): WarningService {
+  return buildServices(ctx).warning;
+}
+
 function createControllers(ctx: AppContext) {
+  const { verification, warning } = buildServices(ctx);
+  return {
+    verification: new VerificationController(verification),
+    warnings: new WarningController(warning, new CriteriaRepository(ctx.db)),
+  };
+}
+
+function buildServices(ctx: AppContext) {
   const reports = new HazardReportRepository(ctx.db);
   const verifications = new VerificationRepository(ctx.db);
   const warnings = new WarningRepository(ctx.db);
@@ -38,15 +52,12 @@ function createControllers(ctx: AppContext) {
     warnings,
     criteria,
     ctx.districts,
-    ctx.notifications,
+    new WarningNotifier(warnings, criteria, assembler, ctx.notifications, ctx.users),
     assembler,
     new AudienceEstimator(),
     ctx.clock,
   );
-  return {
-    verification: new VerificationController(verification),
-    warnings: new WarningController(warning, criteria),
-  };
+  return { verification, warning };
 }
 
 const { DutyOfficer: officer, SecondApprover: approver } = Role;
@@ -71,8 +82,18 @@ export function createReportVerificationRouter(ctx: AppContext): Router {
     verification.decide,
   );
 
-  router.post('/warnings/preview', only(officer), validate({ body: schema.previewBody }), warnings.preview);
-  router.post('/warnings', only(officer), validate({ body: schema.createWarningBody }), warnings.create);
+  router.post(
+    '/warnings/preview',
+    only(officer),
+    validate({ body: schema.previewBody }),
+    warnings.preview,
+  );
+  router.post(
+    '/warnings',
+    only(officer),
+    validate({ body: schema.createWarningBody }),
+    warnings.create,
+  );
   router.post(
     '/warnings/:id/approval',
     only(approver),
@@ -81,11 +102,16 @@ export function createReportVerificationRouter(ctx: AppContext): Router {
   );
   router.post(
     '/warnings/:id/correction',
-    only(officer),
+    staff,
     validate({ params: schema.idParams, body: schema.correctionBody }),
     warnings.correct,
   );
-  router.get('/warnings/:id/delivery', staff, validate({ params: schema.idParams }), warnings.delivery);
+  router.get(
+    '/warnings/:id/delivery',
+    staff,
+    validate({ params: schema.idParams }),
+    warnings.delivery,
+  );
   router.get('/hazard-team-rules', staff, warnings.teamRules);
 
   return router;

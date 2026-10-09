@@ -8,7 +8,7 @@ import {
   removePendingDrafts,
   savePendingDraft,
   type PendingDraft,
-} from '../hooks/pending-drafts';
+} from '../lib/pending-drafts';
 import { usePendingDrafts } from '../hooks/usePendingDrafts';
 
 vi.mock('../api/policy-analytics.api');

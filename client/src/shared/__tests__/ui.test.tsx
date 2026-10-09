@@ -16,7 +16,7 @@ import {
   OfflineBanner,
   StatusBadge,
 } from '../ui/feedback';
-import { Checkbox, Select, TextArea, TextInput } from '../ui/fields';
+import { Checkbox, Radio, Select, TextArea, TextInput } from '../ui/fields';
 import { PageHeader } from '../ui/PageHeader';
 import { StepProgress } from '../ui/StepProgress';
 
@@ -135,6 +135,11 @@ describe('form fields', () => {
           <option value="b">B</option>
         </Select>
         <Checkbox label="Agree" />
+        <fieldset>
+          <legend>Kind of hazard</legend>
+          <Radio name="hazard" label="Flood" defaultChecked />
+          <Radio name="hazard" label="Landslide" />
+        </fieldset>
       </>,
     );
     expect(screen.getByLabelText('Notes')).toHaveValue('hi');
@@ -142,6 +147,9 @@ describe('form fields', () => {
     expect(onChange).toHaveBeenCalled();
     await userEvent.click(screen.getByLabelText('Agree'));
     expect(screen.getByLabelText('Agree')).toBeChecked();
+    await userEvent.click(screen.getByRole('radio', { name: 'Landslide' }));
+    expect(screen.getByRole('radio', { name: 'Landslide' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Flood' })).not.toBeChecked();
   });
 });
 

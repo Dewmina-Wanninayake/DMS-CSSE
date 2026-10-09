@@ -1,4 +1,3 @@
-import { MapPin } from 'lucide-react';
 import type { NearbyReport } from '@dms/shared';
 import { Card } from '../../../shared/ui/Card';
 import { StatusBadge } from '../../../shared/ui/feedback';
@@ -10,8 +9,8 @@ interface Props {
 export function NearbyReportsList({ reports }: Props) {
   if (reports.length === 0) {
     return (
-      <Card title="Nearby Corroborating Reports (2 km / 2 h)" icon={MapPin}>
-        <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: 'var(--text-body)' }}>
+      <Card title="Nearby reports (2 km / 2 h)">
+        <p className="muted flush">
           No other ground hazard reports detected within 2 km radius in the 2-hour window.
         </p>
       </Card>
@@ -19,7 +18,7 @@ export function NearbyReportsList({ reports }: Props) {
   }
 
   return (
-    <Card title={`Nearby Corroborating Reports (${reports.length})`} icon={MapPin}>
+    <Card title={`Nearby reports (${reports.length})`}>
       <div className="table-wrap">
         <table className="table">
           <thead>
@@ -27,7 +26,7 @@ export function NearbyReportsList({ reports }: Props) {
               <th>Report ID</th>
               <th>Hazard</th>
               <th>Distance</th>
-              <th>Reported At</th>
+              <th>Reported at</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -46,8 +45,8 @@ export function NearbyReportsList({ reports }: Props) {
                       r.status === 'Verified'
                         ? 'success'
                         : r.status === 'Rejected'
-                        ? 'danger'
-                        : 'warning'
+                          ? 'danger'
+                          : 'warning'
                     }
                   >
                     {r.status}

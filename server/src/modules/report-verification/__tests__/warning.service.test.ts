@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Channel, WarningLevel, WarningStatus } from '@dms/shared';
+import { Channel, Role, WarningLevel, WarningStatus } from '@dms/shared';
 import { createTestEnv, districtId, type TestEnv } from '../../../core/testing/test-env';
 import { AudienceEstimator } from '../domain/audience-estimator';
 import { CriteriaRepository } from '../repositories/criteria.repository';
 import { HazardReportRepository } from '../repositories/hazard-report.repository';
 import { WarningRepository } from '../repositories/warning.repository';
 import { WarningAssembler } from '../services/warning.assembler';
+import { WarningNotifier } from '../services/warning-notifier';
 import { WarningService } from '../services/warning.service';
 
 let env: TestEnv;
@@ -16,13 +17,13 @@ beforeEach(() => {
   const reports = new HazardReportRepository(env.db);
   const warnings = new WarningRepository(env.db);
   const criteria = new CriteriaRepository(env.db);
-  const assembler = new WarningAssembler(warnings, env.districts);
+  const assembler = new WarningAssembler(warnings, env.ctx.districts);
   service = new WarningService(
     reports,
     warnings,
     criteria,
-    env.districts,
-    env.notifications,
+    env.ctx.districts,
+    new WarningNotifier(warnings, criteria, assembler, env.ctx.notifications, env.ctx.users),
     assembler,
     new AudienceEstimator(),
     () => new Date('2026-10-09T12:00:00.000Z'),
@@ -40,7 +41,7 @@ describe('WarningService', () => {
     const cmbId = districtId(env.db, 'CMB');
 
     const preview = service.preview({
-      reportId: r.id,
+      reportId: r,
       level: WarningLevel.Warning,
       areaIds: [cmbId],
       language: 'English',
@@ -53,7 +54,7 @@ describe('WarningService', () => {
   });
 
   it('8a: should create warning in PendingApproval state for Warning level', () => {
-    const officer = { id: 1, email: 'officer@dmc.gov.lk', role: 'DutyOfficer' as const };
+    const officer = env.signIn(Role.DutyOfficer).user;
     const r = env.insertReport({
       districtCode: 'CMB',
       status: 'Verified',
@@ -63,7 +64,7 @@ describe('WarningService', () => {
     const cmbId = districtId(env.db, 'CMB');
 
     const warning = service.create(officer, {
-      reportId: r.id,
+      reportId: r,
       level: WarningLevel.Warning,
       areaIds: [cmbId],
       reason: 'Critical water level threshold reached',
@@ -78,8 +79,8 @@ describe('WarningService', () => {
   });
 
   it('8b: should approve pending warning and change status to Issued', () => {
-    const officer = { id: 1, email: 'officer@dmc.gov.lk', role: 'DutyOfficer' as const };
-    const approver = { id: 2, email: 'approver@dmc.gov.lk', role: 'SecondApprover' as const };
+    const officer = env.signIn(Role.DutyOfficer).user;
+    const approver = env.signIn(Role.SecondApprover).user;
     const r = env.insertReport({
       districtCode: 'CMB',
       status: 'Verified',
@@ -89,7 +90,7 @@ describe('WarningService', () => {
     const cmbId = districtId(env.db, 'CMB');
 
     const created = service.create(officer, {
-      reportId: r.id,
+      reportId: r,
       level: WarningLevel.Warning,
       areaIds: [cmbId],
       reason: 'Critical water level threshold reached',
@@ -108,7 +109,7 @@ describe('WarningService', () => {
   });
 
   it('10a: should correct active warning details', () => {
-    const officer = { id: 1, email: 'officer@dmc.gov.lk', role: 'DutyOfficer' as const };
+    const officer = env.signIn(Role.DutyOfficer).user;
     const r = env.insertReport({
       districtCode: 'CMB',
       status: 'Verified',
@@ -118,7 +119,7 @@ describe('WarningService', () => {
     const cmbId = districtId(env.db, 'CMB');
 
     const created = service.create(officer, {
-      reportId: r.id,
+      reportId: r,
       level: WarningLevel.Advisory,
       areaIds: [cmbId],
       reason: 'Initial advisory',
@@ -127,7 +128,7 @@ describe('WarningService', () => {
       confirmedAudience: true,
     });
 
-    const corrected = service.correct(created.id, {
+    const corrected = service.correct(officer, created.id, {
       action: 'Correct',
       level: WarningLevel.Watch,
       reason: 'Upgraded to watch due to continued rainfall',
@@ -138,7 +139,7 @@ describe('WarningService', () => {
   });
 
   it('10b: should withdraw active warning', () => {
-    const officer = { id: 1, email: 'officer@dmc.gov.lk', role: 'DutyOfficer' as const };
+    const officer = env.signIn(Role.DutyOfficer).user;
     const r = env.insertReport({
       districtCode: 'CMB',
       status: 'Verified',
@@ -148,7 +149,7 @@ describe('WarningService', () => {
     const cmbId = districtId(env.db, 'CMB');
 
     const created = service.create(officer, {
-      reportId: r.id,
+      reportId: r,
       level: WarningLevel.Advisory,
       areaIds: [cmbId],
       reason: 'Initial advisory',
@@ -157,7 +158,7 @@ describe('WarningService', () => {
       confirmedAudience: true,
     });
 
-    const withdrawn = service.correct(created.id, {
+    const withdrawn = service.correct(officer, created.id, {
       action: 'Withdraw',
     });
 

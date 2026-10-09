@@ -31,6 +31,7 @@ const toRecord = (r: Row): VerificationRecord => ({
   decidedAt: r.decided_at,
 });
 
+/** One `report_verifications` row per report (unique): a report is decided once, and the row records who decided, what and why. */
 export class VerificationRepository {
   constructor(private readonly db: Db) {}
 

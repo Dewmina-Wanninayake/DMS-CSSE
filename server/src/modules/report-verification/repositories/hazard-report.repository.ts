@@ -60,6 +60,7 @@ const toRecord = (r: Row): HazardReportRecord => ({
   reportedAt: r.reported_at,
 });
 
+/** The officer's view of `hazard_reports`, which UC-CV-003 writes. This module only changes status, severity and the duplicate link. */
 export class HazardReportRepository {
   constructor(private readonly db: Db) {}
 
@@ -71,7 +72,9 @@ export class HazardReportRepository {
   listPending(): HazardReportRecord[] {
     return (
       this.db
-        .prepare(`${SELECT} WHERE r.status IN ('Pending','NeedsInformation') ORDER BY r.reported_at DESC`)
+        .prepare(
+          `${SELECT} WHERE r.status IN ('Pending','NeedsInformation') ORDER BY r.reported_at DESC`,
+        )
         .all() as Row[]
     ).map(toRecord);
   }

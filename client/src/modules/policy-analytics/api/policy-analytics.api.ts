@@ -23,7 +23,7 @@ export interface PolicyListParams {
   pageSize?: number;
 }
 
-/** Typed client for the UC-DA-001 endpoints (docs/api/policy-analytics.md). */
+/** Typed client for the UC-DA-001 endpoints (docs/uc-da-001-policy-analytics.md). */
 export const policyAnalyticsApi = {
   filters: () => api.get<AnalyticsFilters>('/analytics/filters'),
   latestVerified: (limit?: number) =>

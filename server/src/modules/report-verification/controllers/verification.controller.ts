@@ -6,6 +6,7 @@ import type { ReportVerificationService } from '../services/report-verification.
 
 const idOf = (req: Request): number => (req.validated.params as { id: number }).id;
 
+/** Thin HTTP layer: validated input in, one service call, envelope out. No rules and no SQL. */
 export class VerificationController {
   constructor(private readonly service: ReportVerificationService) {}
 
@@ -18,6 +19,9 @@ export class VerificationController {
   };
 
   decide = (req: Request, res: Response): void => {
-    sendOk(res, this.service.decide(currentUser(req), idOf(req), req.validated.body as DecisionRequest));
+    sendOk(
+      res,
+      this.service.decide(currentUser(req), idOf(req), req.validated.body as DecisionRequest),
+    );
   };
 }

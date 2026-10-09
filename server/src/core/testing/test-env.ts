@@ -1,5 +1,5 @@
 import type { Express } from 'express';
-import { HazardType, ReportStatus, Role, type AuthUser } from '@dms/shared';
+import { HazardType, ReportStatus, Role, type AuthUser, type Severity } from '@dms/shared';
 import { createApp } from '../../app';
 import { loadConfig } from '../../config/env';
 import { hashPassword } from '../auth/password';
@@ -41,6 +41,12 @@ export interface ReportFixture {
   reportedAt?: string;
   duplicateOf?: number | null;
   description?: string;
+  /** Overrides the district centroid (used by nearby-report tests). */
+  latitude?: number;
+  longitude?: number;
+  photoPath?: string | null;
+  locationSource?: 'Gps' | 'Manual';
+  severity?: Severity | null;
 }
 
 /** scrypt is deliberately slow, so hash once for every test user. */
@@ -93,22 +99,25 @@ export function createTestEnv(options: { hydromet?: HydrometProvider } = {}): Te
       const result = db
         .prepare(
           `INSERT INTO hazard_reports
-             (reporter_id, hazard_type, description, status, latitude, longitude, district_id, reported_at, duplicate_of, verified_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             (reporter_id, hazard_type, description, status, latitude, longitude, district_id, reported_at, duplicate_of, verified_at, photo_path, location_source, severity)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           reporter.id,
           input.hazardType ?? HazardType.Flood,
           input.description ?? 'Test report',
           input.status ?? ReportStatus.Verified,
-          district.latitude,
-          district.longitude,
+          input.latitude ?? district.latitude,
+          input.longitude ?? district.longitude,
           district.id,
           input.reportedAt ?? '2026-09-15T08:00:00.000Z',
           input.duplicateOf ?? null,
           input.status === ReportStatus.Verified || input.status === undefined
             ? (input.reportedAt ?? '2026-09-15T08:00:00.000Z')
             : null,
+          input.photoPath ?? null,
+          input.locationSource ?? 'Gps',
+          input.severity ?? null,
         );
       return Number(result.lastInsertRowid);
     },

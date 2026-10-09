@@ -1,6 +1,7 @@
 import type { Db } from '../../../core/db/connection';
 import { NotFoundError } from '../../../core/http/errors';
 
+/** Operator-tunable duplicate window, read from `report_settings` so changing it needs no deploy. */
 export interface DuplicateSettings {
   radiusMeters: number;
   windowMinutes: number;

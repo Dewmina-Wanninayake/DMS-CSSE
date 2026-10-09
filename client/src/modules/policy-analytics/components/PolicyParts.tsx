@@ -18,7 +18,7 @@ import {
 import { formatDate, formatRelativeTime } from '../../../shared/format/format';
 import { Alert, EmptyState, StatusBadge } from '../../../shared/ui/feedback';
 import { IconChip, ListItem } from '../../../shared/ui/Card';
-import { DELIVERY_TONE } from '../constants';
+import { DELIVERY_TONE } from '../lib/constants';
 
 /** "Latest verified ground reports" from the analyst dashboard (read-only; verification is UC-DIST-02). */
 export function LatestReportsList({
@@ -102,7 +102,7 @@ export function ConflictList({ conflicts }: { conflicts: RegulatoryConflict[] })
   if (conflicts.length === 0) return null;
   return (
     <Alert tone="danger" title="This policy conflicts with national regulatory standards">
-      <ul style={{ margin: 'var(--space-2) 0 0', paddingLeft: 'var(--space-6)' }}>
+      <ul className="bullets">
         {conflicts.map((c) => (
           <li key={`${c.ruleCode}-${c.field}`}>
             <strong>{FIELD_LABEL[c.field]}:</strong> “{c.clause}” — {c.message} ({c.ruleCode})

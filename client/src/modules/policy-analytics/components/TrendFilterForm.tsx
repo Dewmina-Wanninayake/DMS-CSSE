@@ -9,7 +9,7 @@ import {
 import { addDays, toDayString } from '../../../shared/format/format';
 import { Button } from '../../../shared/ui/Button';
 import { Checkbox, Select, TextInput } from '../../../shared/ui/fields';
-import { DEFAULT_PERIOD_DAYS } from '../constants';
+import { DEFAULT_PERIOD_DAYS } from '../lib/constants';
 
 interface TrendFilterFormProps {
   filters: AnalyticsFilters;
@@ -72,7 +72,7 @@ export function TrendFilterForm({ filters, busy, errors, onSubmit }: TrendFilter
         )}
       </div>
 
-      <fieldset className="fieldset stack" style={{ gap: 'var(--space-2)' }}>
+      <fieldset className="fieldset stack gap-2">
         <legend>Region</legend>
         <Checkbox
           label="All districts"

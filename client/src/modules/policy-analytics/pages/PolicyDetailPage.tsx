@@ -70,7 +70,7 @@ export function PolicyDetailPage() {
         {error && <Alert tone="danger">{error}</Alert>}
         {policy && detail.data && (
           <>
-            <div className="row" style={{ justifyContent: 'space-between' }}>
+            <div className="row row--between">
               <PolicyStatusBadge status={policy.status} />
               <div className="row">
                 {isAuthor && policy.status === PolicyStatus.Draft && (
@@ -105,7 +105,7 @@ export function PolicyDetailPage() {
 
             {SECTIONS.map(([key, label]) => (
               <Card key={key} title={label}>
-                <p style={{ whiteSpace: 'pre-wrap' }}>
+                <p className="pre-wrap">
                   {policy[key] || <span className="muted">Not provided.</span>}
                 </p>
               </Card>

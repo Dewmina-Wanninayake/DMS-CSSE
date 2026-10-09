@@ -1,14 +1,21 @@
-import { CheckCircle2, ShieldAlert, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import type { QueueWarning } from '@dms/shared';
 import { Button } from '../../../shared/ui/Button';
 import { Card } from '../../../shared/ui/Card';
-import { Alert, EmptyState, ErrorState, LoadingState, StatusBadge } from '../../../shared/ui/feedback';
-import { Textarea } from '../../../shared/ui/fields';
+import {
+  Alert,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  StatusBadge,
+} from '../../../shared/ui/feedback';
+import { TextArea } from '../../../shared/ui/fields';
 import { PageHeader } from '../../../shared/ui/PageHeader';
-import { reportVerificationApi } from '../api/reportVerificationApi';
+import { reportVerificationApi } from '../api/report-verification.api';
 import { useVerificationQueue } from '../hooks/useVerificationQueue';
 
+/** Step 10: Warning and Emergency levels are only issued after a Second Approver approves or rejects them (DIST-02 #7). */
 export function SecondApproverPage() {
   const { queue, isLoading, error, refresh } = useVerificationQueue();
   const [selected, setSelected] = useState<QueueWarning | null>(null);
@@ -17,7 +24,7 @@ export function SecondApproverPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  if (isLoading) return <LoadingState label="Loading pending authorization queue..." />;
+  if (isLoading) return <LoadingState label="Loading pending authorization queue…" />;
   if (error) return <ErrorState message={error} onRetry={refresh} />;
   if (!queue) return null;
 
@@ -43,17 +50,17 @@ export function SecondApproverPage() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="stack stack--loose">
       <PageHeader
-        title="Second Approver Authorization Queue"
+        title="Approval queue"
         subtitle="Review and authorize escalated high-severity warnings (Warning / Emergency levels)"
       />
 
       {successMsg && <Alert tone="success">{successMsg}</Alert>}
       {actionError && <Alert tone="danger">{actionError}</Alert>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'var(--space-4)' }}>
-        <Card title={`Pending Warnings (${queue.pendingApprovals.length})`} icon={ShieldAlert}>
+      <div className="grid-auto grid-auto--wide">
+        <Card title={`Warnings waiting for approval (${queue.pendingApprovals.length})`}>
           {queue.pendingApprovals.length === 0 ? (
             <EmptyState
               title="No pending warnings"
@@ -64,22 +71,20 @@ export function SecondApproverPage() {
               {queue.pendingApprovals.map((w) => (
                 <li
                   key={w.id}
+                  className={`list-item list-item--selectable${selected?.id === w.id ? ' list-item--selected' : ''}`}
                   onClick={() => setSelected(w)}
-                  className="list-item"
-                  style={{
-                    cursor: 'pointer',
-                    flexDirection: 'column',
-                    alignItems: 'stretch',
-                    borderColor: selected?.id === w.id ? 'var(--color-primary)' : 'var(--color-border)',
-                    background: selected?.id === w.id ? 'var(--color-primary-soft)' : 'var(--color-surface)',
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') setSelected(w);
                   }}
+                  tabIndex={0}
+                  aria-current={selected?.id === w.id}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-1)' }}>
-                    <span style={{ fontWeight: 700, fontSize: 'var(--text-label)' }}>Warning #{w.id}</span>
+                  <div className="row row--between mb-1">
+                    <span className="text-label strong-700">Warning #{w.id}</span>
                     <StatusBadge tone="warning">{w.level}</StatusBadge>
                   </div>
-                  <p style={{ margin: 0, fontWeight: 500, fontSize: 'var(--text-body)' }}>{w.reason}</p>
-                  <p style={{ margin: 'var(--space-2) 0 0 0', fontSize: 'var(--text-caption)', color: 'var(--color-text-muted)' }}>
+                  <p className="text-body flush medium">{w.reason}</p>
+                  <p className="caption muted mt-2 flush-x">
                     Est. Audience: {w.estimatedAudience.toLocaleString()} | Created:{' '}
                     {new Date(w.createdAt).toLocaleTimeString()}
                   </p>
@@ -89,62 +94,60 @@ export function SecondApproverPage() {
           )}
         </Card>
 
-        <Card title="Authorization Review Panel" icon={CheckCircle2}>
+        <Card title="Approval decision">
           {selected ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
-                <span style={{ fontSize: 'var(--text-caption)', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
-                  Selected Warning
-                </span>
-                <h3 style={{ margin: 'var(--space-1) 0 0 0', fontSize: 'var(--text-title)', fontWeight: 700 }}>
+            <div className="stack">
+              <div className="divider-bottom pb-3">
+                <span className="caption strong muted">Selected warning</span>
+                <h3 className="text-title strong-700 mt-1 flush-x">
                   #{selected.id} — Level: {selected.level}
                 </h3>
-                <p className="alert alert--neutral" style={{ margin: 'var(--space-2) 0 0 0' }}>{selected.reason}</p>
+                <p className="alert alert--neutral mt-2 flush-x">{selected.reason}</p>
               </div>
 
               <dl className="summary">
                 <div className="summary__row">
-                  <dt>Hazard Type</dt>
+                  <dt>Hazard type</dt>
                   <dd>{selected.hazardType}</dd>
                 </div>
                 <div className="summary__row">
-                  <dt>Estimated Audience</dt>
+                  <dt>Estimated audience</dt>
                   <dd>{selected.estimatedAudience.toLocaleString()} citizens</dd>
                 </div>
                 <div className="summary__row">
-                  <dt>Creation Timestamp</dt>
+                  <dt>Created at</dt>
                   <dd>{new Date(selected.createdAt).toLocaleString()}</dd>
                 </div>
               </dl>
 
-              <Textarea
-                label="Approver Notes / Authorization Rationale"
+              <TextArea
+                label="Approver notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add notes explaining your approval or rejection decision..."
                 rows={3}
               />
 
-              <div style={{ display: 'flex', gap: 'var(--space-3)', paddingTop: 'var(--space-2)' }}>
+              <div className="row">
                 <Button
                   onClick={() => void handleDecision('Approved')}
                   loading={isSubmitting}
-                  icon={CheckCircle2}
+                  icon={<CheckCircle2 size={16} aria-hidden="true" />}
                 >
-                  Approve & Broadcast
+                  Approve and send
                 </Button>
                 <Button
                   variant="danger"
                   onClick={() => void handleDecision('Rejected')}
                   loading={isSubmitting}
-                  icon={XCircle}
+                  icon={<XCircle size={16} aria-hidden="true" />}
                 >
-                  Reject Warning
+                  Reject warning
                 </Button>
               </div>
             </div>
           ) : (
-            <p style={{ margin: 0, fontSize: 'var(--text-body)', color: 'var(--color-text-muted)' }}>
+            <p className="muted flush">
               Select a pending warning from the queue to review and authorize.
             </p>
           )}

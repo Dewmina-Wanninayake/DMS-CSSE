@@ -51,16 +51,18 @@ async function send<T>(
   method: string,
   path: string,
   body?: unknown,
+  /** Set for a raw upload (e.g. a photo): `body` is then sent as is with this content type. */
+  rawContentType?: string,
 ): Promise<{ data: T; meta?: PageMeta }> {
   let response: Response;
   try {
     response = await fetch(`${BASE_URL}${API_PREFIX}${path}`, {
       method,
       headers: {
-        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(body === undefined ? {} : { 'Content-Type': rawContentType ?? 'application/json' }),
         ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : rawContentType ? (body as Blob) : JSON.stringify(body),
     });
   } catch {
     throw new NetworkError();
@@ -89,6 +91,25 @@ async function send<T>(
   return { data: payload.data, meta: payload.meta };
 }
 
+/**
+ * Downloads a protected file (for example a report photo) as a Blob. An `<img src>` cannot send the
+ * bearer token, so images behind login are fetched here and shown from an object URL.
+ */
+async function download(path: string): Promise<Blob> {
+  let response: Response;
+  try {
+    response = await fetch(`${BASE_URL}${API_PREFIX}${path}`, {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+    });
+  } catch {
+    throw new NetworkError();
+  }
+  if (!response.ok) {
+    throw new ApiError(response.status, 'DOWNLOAD_FAILED', 'The file could not be loaded.');
+  }
+  return response.blob();
+}
+
 export const api = {
   get: async <T>(path: string): Promise<T> => (await send<T>('GET', path)).data,
   post: async <T>(path: string, body?: unknown): Promise<T> =>
@@ -97,6 +118,11 @@ export const api = {
     (await send<T>('PUT', path, body)).data,
   patch: async <T>(path: string, body: unknown): Promise<T> =>
     (await send<T>('PATCH', path, body)).data,
+  /** Fetches a login-protected file; `path` is relative to the API prefix. */
+  getBlob: download,
+  /** Sends the file bytes as the request body (UC-CV-003 photo upload). */
+  putFile: async <T>(path: string, file: Blob): Promise<T> =>
+    (await send<T>('PUT', path, file, file.type)).data,
   /** For paginated lists: returns the rows together with the paging meta. */
   getPage: async <T>(path: string): Promise<Page<T>> => {
     const { data, meta } = await send<T[]>('GET', path);

@@ -8,7 +8,7 @@ import { DistrictMap } from '../../../shared/ui/DistrictMap';
 import { Alert } from '../../../shared/ui/feedback';
 import { TextInput } from '../../../shared/ui/fields';
 import { RISK_COLORS } from '../../../shared/ui/risk-colors';
-import { SIMULATION_DEFAULTS } from '../constants';
+import { SIMULATION_DEFAULTS } from '../lib/constants';
 
 interface SimulationFormProps {
   busy: boolean;
@@ -124,11 +124,11 @@ export function SimulationSummary({ result }: { result: SimulationResult }) {
           />
         </Card>
       </div>
-      <div className="row" style={{ justifyContent: 'space-between' }}>
+      <div className="row row--between">
         <span>
           Simulation ID: <strong>{result.reference}</strong>
         </span>
-        <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>Status: Success</span>
+        <span className="text-success strong">Status: Success</span>
       </div>
       <p className="muted">
         About {formatNumber(totals.exposedPopulation, 0)} people exposed · evacuation in roughly{' '}
