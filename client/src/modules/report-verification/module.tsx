@@ -1,4 +1,4 @@
-import { CheckSquare, Radio, ShieldAlert } from 'lucide-react';
+import { CheckSquare, ShieldAlert } from 'lucide-react';
 import { Role } from '@dms/shared';
 import { RequireRole } from '../../shared/auth/AuthContext';
 import type { ClientModule } from '../../shared/layout/navigation';
@@ -17,8 +17,19 @@ const staff = [officer, approver] as const;
 export const reportVerificationModule: ClientModule = {
   id: 'report-verification',
   nav: [
-    { to: '/verification', label: 'Verification Queue', icon: CheckSquare, roles: staff, end: true },
-    { to: '/verification/approvals', label: 'Warning Approvals', icon: ShieldAlert, roles: [approver, officer] },
+    {
+      to: '/verification',
+      label: 'Verification Queue',
+      icon: CheckSquare,
+      roles: staff,
+      end: true,
+    },
+    {
+      to: '/verification/approvals',
+      label: 'Warning Approvals',
+      icon: ShieldAlert,
+      roles: [approver, officer],
+    },
   ],
   routes: [
     {

@@ -5,9 +5,7 @@ import type { NewNotification, NotificationGateway } from './notification.types'
 /** Strategy for one delivery channel (critique DIST-02 #4, #9). */
 export interface ChannelStrategy {
   readonly channel: Channel;
-  deliver(
-    notification: Pick<NewNotification, 'recipient' | 'subject' | 'body'>,
-  ): Promise<void>;
+  deliver(notification: Pick<NewNotification, 'recipient' | 'subject' | 'body'>): Promise<void>;
 }
 
 class LoggingChannelStrategy implements ChannelStrategy {
@@ -16,7 +14,9 @@ class LoggingChannelStrategy implements ChannelStrategy {
     private readonly logger: Logger,
   ) {}
 
-  async deliver(notification: Pick<NewNotification, 'recipient' | 'subject' | 'body'>): Promise<void> {
+  async deliver(
+    notification: Pick<NewNotification, 'recipient' | 'subject' | 'body'>,
+  ): Promise<void> {
     this.logger.info(`[${this.channel}] -> ${notification.recipient}: ${notification.subject}`);
   }
 }

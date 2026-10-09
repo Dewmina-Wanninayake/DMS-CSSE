@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Role } from '@dms/shared';
+import { DEFAULT_DEMO_PASSWORD, DEMO_ACCOUNTS, Role } from '@dms/shared';
 import { api, setAuthToken } from '../../shared/api/api-client';
 import { AuthProvider, RequireRole, useAuth } from '../../shared/auth/AuthContext';
 import { homePathFor, navItemsFor, registeredModules } from '../../shared/layout/navigation';
@@ -27,8 +27,20 @@ function mount(path: string) {
 beforeEach(() => vi.restoreAllMocks());
 
 describe('module registry', () => {
+  it('should register every team module', () => {
+    expect(registeredModules().map((m) => m.id)).toEqual([
+      'policy-analytics',
+      'report-verification',
+      'ground-reporting',
+      'emergency-response',
+    ]);
+    expect(homePathFor(Role.Citizen)).toBe('/report');
+    expect(homePathFor(Role.DutyOfficer)).toBe('/verification');
+    expect(homePathFor(Role.JointOpsLead)).toBe('/response');
+    expect(homePathFor(Role.RescueTeamLeader)).toBe('/response/my-dispatches');
+  });
+
   it('should register the policy-analytics module with role-aware navigation', () => {
-    expect(registeredModules().map((m) => m.id)).toContain('policy-analytics');
     expect(navItemsFor(Role.DisasterAnalyst).map((n) => n.label)).toEqual([
       'Dashboard',
       'Risk map',
@@ -41,9 +53,9 @@ describe('module registry', () => {
       'Risk map',
       'Policy',
     ]);
-    expect(navItemsFor(Role.Citizen)).toEqual([]);
+    expect(navItemsFor(Role.RegionalAdmin)).toEqual([]);
     expect(homePathFor(Role.DisasterAnalyst)).toBe('/analytics');
-    expect(homePathFor(Role.Citizen)).toBeUndefined();
+    expect(homePathFor(Role.RegionalAdmin)).toBeUndefined();
   });
 });
 
@@ -80,7 +92,7 @@ describe('routing and role guards', () => {
   });
 
   it('should show an empty state for a role without screens', async () => {
-    signInAs(Role.Citizen);
+    signInAs(Role.RegionalAdmin);
     mount('/');
     expect(await screen.findByText('Nothing to show for your role yet')).toBeInTheDocument();
   });
@@ -117,6 +129,20 @@ describe('sign-in and sign-out', () => {
       password: 'secret-pass',
     });
     expect(JSON.parse(window.sessionStorage.getItem('dms.session') as string).token).toBe('tok');
+  });
+
+  it('should list every demo account and fill the form from the one the marker picks', async () => {
+    mount('/login');
+    const list = within(await screen.findByRole('list', { name: 'Demo accounts' }));
+    expect(list.getAllByRole('button')).toHaveLength(DEMO_ACCOUNTS.length);
+    // Every use case has at least one account to sign in with.
+    for (const useCase of ['UC-DIST-02', 'UC-DA-001', 'UC-CV-003', 'UC-JOINT-001']) {
+      expect(list.getAllByText(new RegExp(useCase)).length).toBeGreaterThan(0);
+    }
+
+    await userEvent.click(list.getByRole('button', { name: /Nimali Perera · Policy Director/ }));
+    expect(screen.getByLabelText('Email')).toHaveValue('director@dms.lk');
+    expect(screen.getByLabelText('Password')).toHaveValue(DEFAULT_DEMO_PASSWORD);
   });
 
   it('should show the server message for wrong credentials and stay on the page', async () => {

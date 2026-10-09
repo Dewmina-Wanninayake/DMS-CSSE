@@ -151,6 +151,18 @@ describe('API client', () => {
     expect((fetchMock.mock.calls[0] as [string, RequestInit])[1].method).toBe('PATCH');
   });
 
+  it('should upload a file as the raw request body with its own content type', async () => {
+    const fetchMock = respond(200, { success: true, data: { sizeBytes: 3 } });
+    vi.stubGlobal('fetch', fetchMock);
+    const file = new Blob(['abc'], { type: 'image/png' });
+    await api.putFile('/reports/1/photo', file);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/v1/reports/1/photo');
+    expect(init.method).toBe('PUT');
+    expect(init.body).toBe(file);
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe('image/png');
+  });
+
   it('should build query strings and skip undefined values', () => {
     expect(toQuery({ a: 1, b: undefined, c: 'x y', d: false })).toBe('?a=1&c=x+y&d=false');
     expect(toQuery({})).toBe('');

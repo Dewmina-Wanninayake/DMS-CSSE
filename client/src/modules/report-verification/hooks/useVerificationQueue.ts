@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { VerificationQueue } from '@dms/shared';
-import { reportVerificationApi } from '../api/reportVerificationApi';
+import { reportVerificationApi } from '../api/report-verification.api';
 
+/** Pending ground reports plus warnings waiting for a Second Approver; one call feeds both lists of the queue screen. */
 export function useVerificationQueue() {
   const [queue, setQueue] = useState<VerificationQueue | null>(null);
   const [isLoading, setIsLoading] = useState(true);

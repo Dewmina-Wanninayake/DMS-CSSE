@@ -13,8 +13,7 @@ describe('MinimumEvidenceRule', () => {
     expect(result.sufficient).toBe(true);
     expect(result.hasGps).toBe(true);
     expect(result.hasPhoto).toBe(true);
-    expect(result.reasons).toContain('Report includes GPS location.');
-    expect(result.reasons).toContain('Report includes photo evidence.');
+    expect(result.reasons).toContain('GPS location and photo meet the minimum evidence rule.');
   });
 
   it('3b: should pass when report has corroborating nearby reports even without photo or GPS', () => {
@@ -25,7 +24,7 @@ describe('MinimumEvidenceRule', () => {
     });
     expect(result.sufficient).toBe(true);
     expect(result.corroborationCount).toBe(1);
-    expect(result.reasons).toContain('Corroborated by 1 report(s) within 2 km / 2 h.');
+    expect(result.reasons).toContain('A nearby report corroborates this one.');
   });
 
   it('3c: should fail when report lacks photo and has no corroboration', () => {
@@ -35,8 +34,7 @@ describe('MinimumEvidenceRule', () => {
       corroborationCount: 0,
     });
     expect(result.sufficient).toBe(false);
-    expect(result.reasons).toContain(
-      'Requires either (GPS + photo) or corroboration by a nearby report within 2 km / 2 h.',
-    );
+    expect(result.reasons).toContain('No photo was attached.');
+    expect(result.reasons).toContain('No other report within 2 km / 2 h.');
   });
 });

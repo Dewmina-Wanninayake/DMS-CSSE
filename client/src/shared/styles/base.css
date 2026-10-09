@@ -255,6 +255,44 @@ a {
 .row--end {
   justify-content: flex-end;
 }
+.stack--loose {
+  gap: var(--space-6);
+}
+.row--loose {
+  gap: var(--space-4);
+}
+.row--tight {
+  gap: var(--space-1);
+}
+.row--between {
+  justify-content: space-between;
+}
+.flush {
+  margin: 0;
+}
+.legend-gap {
+  margin-bottom: var(--space-2);
+}
+.strong {
+  font-weight: 600;
+}
+.text-success {
+  color: var(--color-success);
+}
+.text-danger {
+  color: var(--color-danger);
+}
+.text-warning {
+  color: var(--color-warning);
+}
+.grid-auto {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.grid-auto--wide {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
 .grid {
   display: grid;
   gap: var(--space-3);
@@ -272,4 +310,111 @@ a {
   .grid--two {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* ---------- Utilities (replace one-off inline styles; spacing steps come from tokens.css) ---------- */
+.mb-1 {
+  margin-bottom: var(--space-1);
+}
+.mb-2 {
+  margin-bottom: var(--space-2);
+}
+.mb-4 {
+  margin-bottom: var(--space-4);
+}
+.mt-1 {
+  margin-top: var(--space-1);
+}
+.mt-2 {
+  margin-top: var(--space-2);
+}
+.mt-3 {
+  margin-top: var(--space-3);
+}
+.mt-4 {
+  margin-top: var(--space-4);
+}
+.pt-3 {
+  padding-top: var(--space-3);
+}
+.pt-4 {
+  padding-top: var(--space-4);
+}
+.pb-3 {
+  padding-bottom: var(--space-3);
+}
+.flush-x {
+  margin-left: 0;
+  margin-right: 0;
+}
+.flush-top {
+  margin-top: 0;
+}
+.gap-2 {
+  gap: var(--space-2);
+}
+.block {
+  display: block;
+}
+.alert--block {
+  display: block;
+}
+.strong {
+  font-weight: 600;
+}
+.strong-700 {
+  font-weight: 700;
+}
+.medium {
+  font-weight: 500;
+}
+.text-label {
+  font-size: var(--text-label);
+}
+.text-body {
+  font-size: var(--text-body);
+}
+.text-title {
+  font-size: var(--text-title);
+}
+.divider-top {
+  border-top: 1px solid var(--color-border);
+}
+.divider-bottom {
+  border-bottom: 1px solid var(--color-border);
+}
+.no-shrink {
+  flex-shrink: 0;
+}
+.pre-wrap {
+  white-space: pre-wrap;
+}
+.max-w-16 {
+  max-width: 16rem;
+}
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.compact {
+  padding: var(--space-2) var(--space-3);
+}
+.bullets {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-6);
+}
+.legend-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.figure {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.thumb {
+  max-height: 12rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border);
+  object-fit: cover;
 }

@@ -36,9 +36,7 @@ describe('Report Verification Routes Access Control & Workflow', () => {
 
   it('should forbid Citizen from accessing verification queue', async () => {
     const citizen = env.signIn(Role.Citizen);
-    const res = await request(env.app)
-      .get('/api/v1/verification/queue')
-      .set(bearer(citizen.token));
+    const res = await request(env.app).get('/api/v1/verification/queue').set(bearer(citizen.token));
     expect(res.status).toBe(403);
     expect(res.body.error.code).toBe('FORBIDDEN');
   });
@@ -46,22 +44,24 @@ describe('Report Verification Routes Access Control & Workflow', () => {
   it('should allow DutyOfficer to fetch report review details', async () => {
     const r = env.insertReport({
       districtCode: 'CMB',
+      status: 'Pending',
       description: 'Pending report review',
       reportedAt: '2026-10-09T10:00:00.000Z',
     });
 
     const res = await request(env.app)
-      .get(`/api/v1/verification/reports/${r.id}`)
+      .get(`/api/v1/verification/reports/${r}`)
       .set(bearer(dutyOfficer.token));
 
     expect(res.status).toBe(200);
-    expect(res.body.data.id).toBe(r.id);
+    expect(res.body.data.id).toBe(r);
     expect(res.body.data.districtName).toBe('Colombo');
   });
 
   it('should allow DutyOfficer to record verification decision', async () => {
     const r = env.insertReport({
       districtCode: 'CMB',
+      status: 'Pending',
       description: 'Report with photo and GPS',
       photoPath: '/uploads/img.png',
       locationSource: 'Gps',
@@ -69,7 +69,7 @@ describe('Report Verification Routes Access Control & Workflow', () => {
     });
 
     const res = await request(env.app)
-      .post(`/api/v1/verification/reports/${r.id}/decision`)
+      .post(`/api/v1/verification/reports/${r}/decision`)
       .set(bearer(dutyOfficer.token))
       .send({
         decision: VerificationDecision.Verified,
@@ -84,7 +84,7 @@ describe('Report Verification Routes Access Control & Workflow', () => {
   it('should forbid SecondApprover from posting verification decision', async () => {
     const r = env.insertReport({ districtCode: 'CMB', reportedAt: '2026-10-09T10:00:00.000Z' });
     const res = await request(env.app)
-      .post(`/api/v1/verification/reports/${r.id}/decision`)
+      .post(`/api/v1/verification/reports/${r}/decision`)
       .set(bearer(secondApprover.token))
       .send({
         decision: VerificationDecision.Verified,
@@ -107,7 +107,7 @@ describe('Report Verification Routes Access Control & Workflow', () => {
       .post('/api/v1/warnings/preview')
       .set(bearer(dutyOfficer.token))
       .send({
-        reportId: r.id,
+        reportId: r,
         level: WarningLevel.Warning,
         areaIds: [cmbId],
         language: 'Sinhala',
@@ -132,7 +132,7 @@ describe('Report Verification Routes Access Control & Workflow', () => {
       .post('/api/v1/warnings')
       .set(bearer(dutyOfficer.token))
       .send({
-        reportId: r.id,
+        reportId: r,
         level: WarningLevel.Advisory,
         areaIds: [cmbId],
         reason: 'Water level rising slowly in low areas.',
@@ -159,7 +159,7 @@ describe('Report Verification Routes Access Control & Workflow', () => {
       .post('/api/v1/warnings')
       .set(bearer(dutyOfficer.token))
       .send({
-        reportId: r.id,
+        reportId: r,
         level: WarningLevel.Warning,
         areaIds: [cmbId],
         reason: 'Severe inundation threat.',
@@ -195,7 +195,7 @@ describe('Report Verification Routes Access Control & Workflow', () => {
       .post('/api/v1/warnings')
       .set(bearer(dutyOfficer.token))
       .send({
-        reportId: r.id,
+        reportId: r,
         level: WarningLevel.Advisory,
         areaIds: [cmbId],
         reason: 'Water level advisory.',

@@ -124,3 +124,18 @@ export function Checkbox({ label, ...rest }: CheckboxProps) {
     </div>
   );
 }
+
+interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'id'> {
+  label: string;
+}
+
+/** One option of a radio group; wrap the group in a `<fieldset>` with a `<legend>`. */
+export function Radio({ label, ...rest }: RadioProps) {
+  const id = useId();
+  return (
+    <div className="choice">
+      <input {...rest} id={id} type="radio" />
+      <label htmlFor={id}>{label}</label>
+    </div>
+  );
+}

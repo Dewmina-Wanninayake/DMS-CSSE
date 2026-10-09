@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { policyAnalyticsApi as api } from '../api/policy-analytics.api';
 
-/** Pins the HTTP contract of docs/api/policy-analytics.md so client and server cannot drift apart silently. */
+/** Pins the HTTP contract of docs/uc-da-001-policy-analytics.md so client and server cannot drift apart silently. */
 describe('policy analytics API client', () => {
   afterEach(() => vi.unstubAllGlobals());
 

@@ -1,4 +1,4 @@
-import { HazardType, Role, type Role as RoleType } from '@dms/shared';
+import { DEMO_ACCOUNTS, HazardType } from '@dms/shared';
 import { hashPassword } from '../../core/auth/password';
 import type { Db } from '../../core/db/connection';
 
@@ -9,19 +9,6 @@ import type { Db } from '../../core/db/connection';
  */
 
 const DAY_MS = 86_400_000;
-
-const USERS: { email: string; fullName: string; role: RoleType }[] = [
-  { email: 'analyst@dms.lk', fullName: 'Dulaj Serasinghe', role: Role.DisasterAnalyst },
-  { email: 'director@dms.lk', fullName: 'Nimali Perera', role: Role.PolicyDirector },
-  { email: 'officer@dms.lk', fullName: 'Kasun Fernando', role: Role.DutyOfficer },
-  { email: 'approver@dms.lk', fullName: 'Ishara Jayasuriya', role: Role.SecondApprover },
-  { email: 'joint@dms.lk', fullName: 'Ruwan Silva', role: Role.JointOpsLead },
-  { email: 'teamlead@dms.lk', fullName: 'Chamara Bandara', role: Role.RescueTeamLeader },
-  { email: 'shelter@dms.lk', fullName: 'Anusha Wickramasinghe', role: Role.ShelterCoordinator },
-  { email: 'regional@dms.lk', fullName: 'Sampath Kumara', role: Role.RegionalAdmin },
-  { email: 'citizen@dms.lk', fullName: 'Tharindu Rajapaksa', role: Role.Citizen },
-  { email: 'volunteer@dms.lk', fullName: 'Madhavi Dissanayake', role: Role.Volunteer },
-];
 
 /** Verified reports per hazard, by district code, so the demo shows High, Medium and Low districts. */
 const VERIFIED_COUNTS: Record<string, Record<string, number>> = {
@@ -85,7 +72,7 @@ export function seedDevData(db: Db, password: string, now: Date = new Date()): b
 
   db.transaction(() => {
     const hash = hashPassword(password);
-    for (const u of USERS) insertUser.run(u.email, u.fullName, u.role, hash);
+    for (const u of DEMO_ACCOUNTS) insertUser.run(u.email, u.fullName, u.role, hash);
     const reporterId = (
       db.prepare('SELECT id FROM users WHERE email = ?').get('citizen@dms.lk') as { id: number }
     ).id;

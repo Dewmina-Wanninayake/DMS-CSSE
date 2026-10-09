@@ -40,7 +40,10 @@ export const createWarningBody = previewBody.extend({
   reason: z
     .string()
     .trim()
-    .min(VERIFICATION_LIMITS.reasonMin, `Give a reason of at least ${VERIFICATION_LIMITS.reasonMin} characters.`)
+    .min(
+      VERIFICATION_LIMITS.reasonMin,
+      `Give a reason of at least ${VERIFICATION_LIMITS.reasonMin} characters.`,
+    )
     .max(VERIFICATION_LIMITS.reasonMax),
   confirmedAudience: z.boolean().optional(),
   clientId: z.uuid().optional(),
@@ -55,6 +58,11 @@ export const approvalBody = z.object({
 export const correctionBody = z.object({
   action: z.enum(CorrectionAction),
   level: z.enum(WarningLevel).optional(),
-  reason: z.string().trim().min(VERIFICATION_LIMITS.reasonMin).max(VERIFICATION_LIMITS.reasonMax).optional(),
+  reason: z
+    .string()
+    .trim()
+    .min(VERIFICATION_LIMITS.reasonMin)
+    .max(VERIFICATION_LIMITS.reasonMax)
+    .optional(),
   areaIds: areaIds.optional(),
 });

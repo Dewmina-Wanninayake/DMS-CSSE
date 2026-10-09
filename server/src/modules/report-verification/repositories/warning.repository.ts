@@ -36,6 +36,8 @@ export interface NewWarning {
   createdBy: number;
   clientId: string | null;
   issuedAt: string | null;
+  /** From the injected clock, so waiting time (extension 10b) is measured on the same clock. */
+  createdAt: string;
   areaIds: number[];
   channels: Channel[];
 }
@@ -72,6 +74,7 @@ const toRecord = (r: Row): WarningRecord => ({
   createdAt: r.created_at,
 });
 
+/** Data access for warnings and their areas, channels and approvals. Status rules live in `warning-state-machine.ts`. */
 export class WarningRepository {
   constructor(private readonly db: Db) {}
 
@@ -80,8 +83,8 @@ export class WarningRepository {
       .prepare(
         `INSERT INTO warnings
            (report_id, hazard_type, level, reason, language, status, sync_status,
-            estimated_audience, created_by, client_id, issued_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            estimated_audience, created_by, client_id, issued_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         input.reportId,
@@ -95,6 +98,8 @@ export class WarningRepository {
         input.createdBy,
         input.clientId,
         input.issuedAt,
+        input.createdAt,
+        input.createdAt,
       );
     const id = Number(result.lastInsertRowid);
     const area = this.db.prepare(
@@ -119,8 +124,7 @@ export class WarningRepository {
 
   findByClientId(clientId: string): WarningRecord | undefined {
     const row = this.db.prepare('SELECT * FROM warnings WHERE client_id = ?').get(clientId) as
-      | Row
-      | undefined;
+      Row | undefined;
     return row ? toRecord(row) : undefined;
   }
 
@@ -171,7 +175,12 @@ export class WarningRepository {
     for (const id of areaIds) insert.run(warningId, id);
   }
 
-  insertApproval(warningId: number, approverId: number, decision: string, notes: string | null): void {
+  insertApproval(
+    warningId: number,
+    approverId: number,
+    decision: string,
+    notes: string | null,
+  ): void {
     this.db
       .prepare(
         'INSERT INTO warning_approvals (warning_id, approver_id, decision, notes) VALUES (?, ?, ?, ?)',
@@ -181,5 +190,29 @@ export class WarningRepository {
 
   markSynced(id: number): void {
     this.db.prepare(`UPDATE warnings SET sync_status = 'Synced' WHERE id = ?`).run(id);
+  }
+
+  /**
+   * 10b: warnings still waiting for a Second Approver since before `cutoff` (their creation, or the
+   * last time they were passed on).
+   */
+  listAwaitingApprovalSince(cutoff: string): { id: number; escalationCount: number }[] {
+    return (
+      this.db
+        .prepare(
+          `SELECT id, escalation_count FROM warnings
+           WHERE status = 'PendingApproval' AND COALESCE(last_escalated_at, created_at) <= ?
+           ORDER BY id`,
+        )
+        .all(cutoff) as { id: number; escalation_count: number }[]
+    ).map((row) => ({ id: row.id, escalationCount: row.escalation_count }));
+  }
+
+  recordEscalation(id: number, at: string): void {
+    this.db
+      .prepare(
+        'UPDATE warnings SET escalation_count = escalation_count + 1, last_escalated_at = ? WHERE id = ?',
+      )
+      .run(at, id);
   }
 }

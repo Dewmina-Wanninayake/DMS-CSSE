@@ -1,4 +1,4 @@
-import { CheckSquare, Eye, ShieldAlert } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../../shared/ui/Button';
 import { Card } from '../../../shared/ui/Card';
@@ -6,24 +6,26 @@ import { EmptyState, ErrorState, LoadingState, StatusBadge } from '../../../shar
 import { PageHeader } from '../../../shared/ui/PageHeader';
 import { useVerificationQueue } from '../hooks/useVerificationQueue';
 
+/** Step 1: the officer's queue of pending ground reports, and the approvals waiting for a Second Approver. */
 export function VerificationQueuePage() {
   const { queue, isLoading, error, refresh } = useVerificationQueue();
 
-  if (isLoading) return <LoadingState label="Loading verification queue..." />;
+  if (isLoading) return <LoadingState label="Loading verification queue…" />;
   if (error) return <ErrorState message={error} onRetry={refresh} />;
   if (!queue) return null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="stack stack--loose">
       <PageHeader
-        title="Hazard Report Verification Queue"
+        title="Verification queue"
         subtitle="Review unverified citizen ground reports and manage pending warning approvals"
       />
 
       {queue.pendingApprovals.length > 0 && (
-        <Card title={`Pending Warning Approvals (${queue.pendingApprovals.length})`} icon={ShieldAlert}>
-          <div className="alert alert--warning" style={{ marginBottom: 'var(--space-4)' }}>
-            Warning and Emergency level alerts require second-approver authorization before public broadcast.
+        <Card title={`Warnings waiting for approval (${queue.pendingApprovals.length})`}>
+          <div className="alert alert--warning mb-4">
+            Warning and Emergency level alerts require second-approver authorization before public
+            broadcast.
           </div>
           <div className="table-wrap">
             <table className="table">
@@ -33,7 +35,7 @@ export function VerificationQueuePage() {
                   <th>Level</th>
                   <th>Hazard</th>
                   <th>Reason</th>
-                  <th>Estimated Audience</th>
+                  <th>Estimated audience</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -49,9 +51,7 @@ export function VerificationQueuePage() {
                     <td>{w.estimatedAudience.toLocaleString()} people</td>
                     <td>
                       <Link to="/verification/approvals">
-                        <Button size="sm" variant="secondary">
-                          Review Authorization
-                        </Button>
+                        <Button variant="secondary">Review authorization</Button>
                       </Link>
                     </td>
                   </tr>
@@ -62,7 +62,7 @@ export function VerificationQueuePage() {
         </Card>
       )}
 
-      <Card title={`Ground Hazard Reports Pending Verification (${queue.reports.length})`} icon={CheckSquare}>
+      <Card title={`Reports waiting for verification (${queue.reports.length})`}>
         {queue.reports.length === 0 ? (
           <EmptyState
             title="No pending reports"
@@ -77,7 +77,7 @@ export function VerificationQueuePage() {
                   <th>Hazard</th>
                   <th>District</th>
                   <th>Description</th>
-                  <th>Reported At</th>
+                  <th>Reported at</th>
                   <th>Evidence</th>
                   <th>Action</th>
                 </tr>
@@ -90,22 +90,18 @@ export function VerificationQueuePage() {
                       <strong>{r.hazardType}</strong>
                     </td>
                     <td>{r.districtName}</td>
-                    <td style={{ maxWidth: '16rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {r.description}
-                    </td>
+                    <td className="max-w-16 truncate">{r.description}</td>
                     <td>{new Date(r.reportedAt).toLocaleString()}</td>
                     <td>
-                      <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
-                        {r.hasPhoto && (
-                          <span className="badge badge--info">Photo</span>
-                        )}
+                      <div className="row row--tight">
+                        {r.hasPhoto && <span className="badge badge--info">Photo</span>}
                         <span className="badge badge--neutral">{r.locationSource}</span>
                       </div>
                     </td>
                     <td>
                       <Link to={`/verification/reports/${r.id}`}>
-                        <Button size="sm" icon={Eye}>
-                          Review & Decide
+                        <Button icon={<Eye size={16} aria-hidden="true" />}>
+                          Review and decide
                         </Button>
                       </Link>
                     </td>

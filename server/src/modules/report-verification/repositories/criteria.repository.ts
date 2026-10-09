@@ -34,7 +34,9 @@ export class CriteriaRepository {
   }
 
   listTeamRules(): { hazardType: HazardType; role: Role }[] {
-    return this.db.prepare('SELECT hazard_type AS hazardType, role FROM hazard_team_rules').all() as {
+    return this.db
+      .prepare('SELECT hazard_type AS hazardType, role FROM hazard_team_rules')
+      .all() as {
       hazardType: HazardType;
       role: Role;
     }[];

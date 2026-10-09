@@ -1,5 +1,12 @@
 import 'leaflet/dist/leaflet.css';
-import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip } from 'react-leaflet';
+import {
+  Circle,
+  CircleMarker,
+  MapContainer,
+  TileLayer,
+  Tooltip,
+  useMapEvents,
+} from 'react-leaflet';
 
 /** Geographic centre of Sri Lanka; the map always opens on the whole island (critique DA #7). */
 export const SRI_LANKA_CENTER: [number, number] = [7.8731, 80.7718];
@@ -21,13 +28,20 @@ interface DistrictMapProps {
   /** Accessible name; the markers' text equivalents live in the data table next to the map. */
   label: string;
   height?: string;
+  /** When set, a click or tap on the map drops a pin and reports its position (manual location). */
+  onPick?: (latitude: number, longitude: number) => void;
+}
+
+function PinPicker({ onPick }: { onPick: (latitude: number, longitude: number) => void }) {
+  useMapEvents({ click: (event) => onPick(event.latlng.lat, event.latlng.lng) });
+  return null;
 }
 
 /**
  * Leaflet map on OpenStreetMap tiles. Shared so UC-DIST-02 (affected areas) and UC-CV-003 (pin
  * picker) can reuse it instead of building their own.
  */
-export function DistrictMap({ markers, label, height = '22rem' }: DistrictMapProps) {
+export function DistrictMap({ markers, label, height = '22rem', onPick }: DistrictMapProps) {
   return (
     <div role="region" aria-label={label}>
       <MapContainer
@@ -41,6 +55,7 @@ export function DistrictMap({ markers, label, height = '22rem' }: DistrictMapPro
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        {onPick && <PinPicker onPick={onPick} />}
         {markers.map((marker) => {
           const position: [number, number] = [marker.latitude, marker.longitude];
           const pathOptions = { color: marker.color, fillColor: marker.color, fillOpacity: 0.55 };

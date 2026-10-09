@@ -1,5 +1,6 @@
 import type { Router } from 'express';
 import type { AppContext } from '../core/context';
+import { createEmergencyResponseRouter } from './emergency-response/routes';
 import { createGroundReportingRouter } from './ground-reporting/routes';
 import { createPolicyAnalyticsRouter } from './policy-analytics/routes';
 import { createReportVerificationRouter } from './report-verification/routes';
@@ -18,4 +19,5 @@ export const modules: ModuleDefinition[] = [
   { name: 'policy-analytics', createRouter: createPolicyAnalyticsRouter }, // UC-DA-001 (Member 2)
   { name: 'report-verification', createRouter: createReportVerificationRouter }, // UC-DIST-02 (Member 1)
   { name: 'ground-reporting', createRouter: createGroundReportingRouter }, // UC-CV-003 (Member 3)
+  { name: 'emergency-response', createRouter: createEmergencyResponseRouter }, // UC-JOINT-001 (Member 4)
 ];

@@ -7,7 +7,7 @@ import {
   RISK_LABEL,
   RISK_TONE,
   RISK_ZONE,
-} from '../constants';
+} from '../lib/constants';
 
 export function PolicyStatusBadge({ status }: { status: PolicyStatus }) {
   return <StatusBadge tone={POLICY_STATUS_TONE[status]}>{POLICY_STATUS_LABEL[status]}</StatusBadge>;
@@ -22,11 +22,7 @@ const LEVELS: RiskLevel[] = ['High', 'Medium', 'Low'];
 /** Colour key for the risk map; text labels are always shown next to the swatch. */
 export function RiskLegend() {
   return (
-    <ul
-      className="legend list"
-      aria-label="Map legend"
-      style={{ flexDirection: 'row', flexWrap: 'wrap' }}
-    >
+    <ul className="legend list legend-row" aria-label="Map legend">
       {LEVELS.map((level) => (
         <li key={level} className="legend__item">
           <span

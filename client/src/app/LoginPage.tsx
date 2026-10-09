@@ -1,12 +1,20 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { DEFAULT_DEMO_PASSWORD, DEMO_ACCOUNTS } from '@dms/shared';
 import { ApiError } from '../shared/api/api-client';
 import { useAuth } from '../shared/auth/AuthContext';
 import { Alert } from '../shared/ui/feedback';
 import { Button } from '../shared/ui/Button';
 import { TextInput } from '../shared/ui/fields';
 
-/** Minimal sign-in screen (foundation; not graded — assignment spec). */
+/** Password the seed gives every demo account; override with `VITE_DEMO_PASSWORD` if the server's was changed. */
+const DEMO_PASSWORD: string = import.meta.env.VITE_DEMO_PASSWORD ?? DEFAULT_DEMO_PASSWORD;
+
+/**
+ * Minimal sign-in screen (foundation; not graded — assignment spec). In development builds it also
+ * lists the seeded demo accounts so a marker can open any use case in one click; the list is left
+ * out of production builds.
+ */
 export function LoginPage() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
@@ -59,6 +67,37 @@ export function LoginPage() {
           Sign in
         </Button>
       </form>
+      {!import.meta.env.PROD && (
+        <section
+          className="card stack"
+          aria-labelledby="demo-accounts"
+          style={{ marginTop: 'var(--space-4)' }}
+        >
+          <h2 id="demo-accounts" style={{ fontSize: 'var(--text-section)' }}>
+            Demo accounts
+          </h2>
+          <p className="muted">
+            Choose one to fill in the form. Every account uses the same password.
+          </p>
+          <ul className="list" aria-label="Demo accounts">
+            {DEMO_ACCOUNTS.map((account) => (
+              <li key={account.email}>
+                <Button
+                  variant="secondary"
+                  block
+                  onClick={() => {
+                    setEmail(account.email);
+                    setPassword(DEMO_PASSWORD);
+                  }}
+                >
+                  {`${account.fullName} · ${account.role.replace(/([a-z])([A-Z])/g, '$1 $2')} · ${account.useCase}`}
+                </Button>
+                <span className="caption muted">{account.purpose}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   );
 }

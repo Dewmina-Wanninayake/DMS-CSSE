@@ -11,15 +11,24 @@ export interface StoredPhoto {
 export class PhotoRepository {
   constructor(private readonly db: Db) {}
 
+  /**
+   * Stores the photo and points `hazard_reports.photo_path` at the route that serves it, because
+   * UC-DIST-02's minimum evidence rule (GPS + photo) reads that column.
+   */
   save(reportId: number, mimeType: PhotoMimeType, data: Uint8Array): void {
-    this.db
-      .prepare(
-        `INSERT INTO report_photos (report_id, mime_type, size_bytes, data) VALUES (?, ?, ?, ?)
-         ON CONFLICT (report_id) DO UPDATE SET
-           mime_type = excluded.mime_type, size_bytes = excluded.size_bytes, data = excluded.data,
-           created_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`,
-      )
-      .run(reportId, mimeType, data.length, data);
+    this.db.transaction(() => {
+      this.db
+        .prepare(
+          `INSERT INTO report_photos (report_id, mime_type, size_bytes, data) VALUES (?, ?, ?, ?)
+           ON CONFLICT (report_id) DO UPDATE SET
+             mime_type = excluded.mime_type, size_bytes = excluded.size_bytes, data = excluded.data,
+             created_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`,
+        )
+        .run(reportId, mimeType, data.length, data);
+      this.db
+        .prepare('UPDATE hazard_reports SET photo_path = ? WHERE id = ?')
+        .run(`/api/v1/reports/${reportId}/photo`, reportId);
+    })();
   }
 
   find(reportId: number): StoredPhoto | null {

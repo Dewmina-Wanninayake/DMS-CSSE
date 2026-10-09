@@ -2,6 +2,7 @@ import type { WarningDto } from '@dms/shared';
 import type { DistrictRepository } from '../../../core/db/district.repository';
 import type { WarningRecord, WarningRepository } from '../repositories/warning.repository';
 
+/** Builds the warning DTO (areas and channels joined in) so services and controllers never see raw rows. */
 export class WarningAssembler {
   constructor(
     private readonly warnings: WarningRepository,

@@ -1,4 +1,5 @@
 import {
+  HAZARD_REPORT_RELATED_TYPE,
   ReportStatus,
   VERIFICATION_LIMITS,
   VerificationDecision,
@@ -22,7 +23,10 @@ import type { NotificationService } from '../../../core/notifications/notificati
 import type { EvidenceRule } from '../domain/evidence-rule';
 import { distanceKm } from '../domain/geo';
 import type { CriteriaRepository } from '../repositories/criteria.repository';
-import type { HazardReportRecord, HazardReportRepository } from '../repositories/hazard-report.repository';
+import type {
+  HazardReportRecord,
+  HazardReportRepository,
+} from '../repositories/hazard-report.repository';
 import type { VerificationRepository } from '../repositories/verification.repository';
 import type { WarningRepository } from '../repositories/warning.repository';
 import type { WarningAssembler } from './warning.assembler';
@@ -34,6 +38,7 @@ const toReportStatus = (decision: VerificationDecision): ReportStatus => {
   return decision === VerificationDecision.Verified ? ReportStatus.Verified : ReportStatus.Rejected;
 };
 
+/** Steps 1-7: queue, decision support, the decision itself and telling the reporter. */
 export class ReportVerificationService {
   constructor(
     private readonly reports: HazardReportRepository,
@@ -121,7 +126,10 @@ export class ReportVerificationService {
     this.reports.applyDecision({
       id: reportId,
       status,
-      severity: input.decision === VerificationDecision.Verified ? (input.severity ?? null) : report.severity,
+      severity:
+        input.decision === VerificationDecision.Verified
+          ? (input.severity ?? null)
+          : report.severity,
       duplicateOf: input.duplicateOf ?? null,
       verifiedAt: status === ReportStatus.Verified ? this.clock().toISOString() : null,
     });
@@ -140,7 +148,7 @@ export class ReportVerificationService {
         input.decision === VerificationDecision.Verified
           ? 'Your ground hazard report has been verified.'
           : (input.notes ?? 'Your report was reviewed.'),
-      relatedType: 'hazard_report',
+      relatedType: HAZARD_REPORT_RELATED_TYPE,
       relatedId: reportId,
     });
 

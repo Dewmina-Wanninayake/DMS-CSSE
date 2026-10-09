@@ -30,7 +30,9 @@ describe('warning-state-machine', () => {
   });
 
   it('7e: should allow valid transitions', () => {
-    expect(() => assertTransition(WarningStatus.PendingApproval, WarningStatus.Issued)).not.toThrow();
+    expect(() =>
+      assertTransition(WarningStatus.PendingApproval, WarningStatus.Issued),
+    ).not.toThrow();
     expect(() => assertTransition(WarningStatus.Issued, WarningStatus.Corrected)).not.toThrow();
     expect(() => assertTransition(WarningStatus.Issued, WarningStatus.Withdrawn)).not.toThrow();
   });

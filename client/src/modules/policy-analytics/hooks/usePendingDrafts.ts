@@ -8,7 +8,7 @@ import {
   removePendingDrafts,
   savePendingDraft,
   type PendingDraft,
-} from './pending-drafts';
+} from '../lib/pending-drafts';
 
 export interface SyncSummary {
   uploaded: number;

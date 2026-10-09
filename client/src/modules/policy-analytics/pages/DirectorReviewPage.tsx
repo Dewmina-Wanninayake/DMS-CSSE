@@ -176,7 +176,7 @@ export function DirectorReviewPage() {
                   onChange={(e) => setEffectiveDate(e.target.value)}
                   error={fieldErrors.effectiveDate}
                 />
-                <div className="row" style={{ justifyContent: 'space-between' }}>
+                <div className="row row--between">
                   <Button variant="danger" disabled={busy} onClick={reject}>
                     Reject
                   </Button>
